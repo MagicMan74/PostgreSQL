@@ -147,7 +147,7 @@ Error: /var/lib/postgresql/17/main is not accessible or does not exist
 
 ```sh
 sudo nano /etc/postgresql/17/main/postgresql.conf
-``
+```
 
 ремарим старый путь до каталога с данными, прописываем новый
 
