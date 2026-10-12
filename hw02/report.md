@@ -48,10 +48,9 @@ select * from test;
 ```sh
 sudo pg_ctlcluster 17 main stop
 pg_lsclusters
-```
-
 Ver Cluster Port Status Owner    Data directory              Log file
 17  main    5433 down   postgres /var/lib/postgresql/17/main /var/log/postgresql/postgresql-17-main.log
+```
 
 # 6. Создайте дополнительный диск 10 GB и подключите его к виртуальной машине;
 
