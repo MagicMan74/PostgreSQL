@@ -149,7 +149,7 @@ Error: /var/lib/postgresql/17/main is not accessible or does not exist
 sudo nano /etc/postgresql/17/main/postgresql.conf
 ```
 
-ремарим старый путь до каталога с данными, прописываем новый
+ремарим старый путь до каталога с данными, прописываем новый. берем данные из нового источника
 
 ```sh
 #data_directory = '/var/lib/postgresql/17/main'         # use data in another directory
