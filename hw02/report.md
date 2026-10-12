@@ -154,7 +154,7 @@ sudo nano /etc/postgresql/17/main/postgresql.conf
 ```sh
 #data_directory = '/var/lib/postgresql/17/main'         # use data in another directory
 data_directory = '/mnt/data/main'
-```sh
+```
 
 ![](2_5.png)
 
