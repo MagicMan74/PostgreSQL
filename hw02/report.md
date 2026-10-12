@@ -173,7 +173,6 @@ Ver Cluster Port Status Owner    Data directory Log file
 sudo -u postgres psql -h localhost -p 5433
 ```
 ```sql
-create database test;
 \c test;
 select * from test;
 ```
