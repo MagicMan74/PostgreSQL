@@ -1,12 +1,12 @@
-## Физический уровень PostgreSQL // ДЗ 2
+# Физический уровень PostgreSQL // ДЗ 2
 постановка задачи на https://otus.ru/learning/531261/
 
-# 1. Создайте виртуальную машину с Ubuntu 22.04/24.04 LTS в ЯО/VirtualBox (или эквивалентный стенд с возможностью подключать диск);
+## 1. Создайте виртуальную машину с Ubuntu 22.04/24.04 LTS в ЯО/VirtualBox (или эквивалентный стенд с возможностью подключать диск);
 
 воспользуемся наработками прошлой Домашней работы.
 запустим ранее установленный WSL c Ubuntu 
 
-# 2. Установите PostgreSQL через apt;
+## 2. Установите PostgreSQL через apt;
 
 PostgreSQL через apt так же разварачивался 
 использвались команды
@@ -18,7 +18,7 @@ sudo apt install -y postgresql-17
 sudo nano /etc/postgresql/17/main/postgresql.conf
 ```
 
-# 3. Проверьте, что кластер запущен (pg_lsclusters);
+## 3. Проверьте, что кластер запущен (pg_lsclusters);
 
 перестартуем и проверим кластер
 
@@ -28,7 +28,7 @@ pg_lsclusters
 ```
 ![](2_1.png)
 
-# 4. Под пользователем postgres подключитесь в psql, создайте таблицу test и добавьте 1–2 строки;
+## 4. Под пользователем postgres подключитесь в psql, создайте таблицу test и добавьте 1–2 строки;
 
 ```sql
 sudo -u postgres psql -h localhost -p 5433
@@ -43,7 +43,7 @@ select * from test;
 
 ![](2_2.png)
 
-# 5. Остановите кластер PostgreSQL штатной командой (pg_ctlcluster ... stop);
+## 5. Остановите кластер PostgreSQL штатной командой (pg_ctlcluster ... stop);
 
 ```sh
 sudo pg_ctlcluster 17 main stop
@@ -52,7 +52,7 @@ Ver Cluster Port Status Owner    Data directory              Log file
 17  main    5433 down   postgres /var/lib/postgresql/17/main /var/log/postgresql/postgresql-17-main.log
 ```
 
-# 6. Создайте дополнительный диск 10 GB и подключите его к виртуальной машине;
+## 6. Создайте дополнительный диск 10 GB и подключите его к виртуальной машине;
 
 воспользуемся DiskPart из под командной строки с правами администратора
 
@@ -74,7 +74,7 @@ wsl --mount --vhd "C:\wsl\pgdata.vhdx" --bare
 
 ![](2_3.png)
 
-# 7. Разметьте диск, создайте файловую систему и примонтируйте, например, в /mnt/data;
+## 7. Разметьте диск, создайте файловую систему и примонтируйте, например, в /mnt/data;
 
 создаем на диске таблицу разделов, создаем раздел на весь диск, 
 создаем файловую систему ext4, создаем точку монтирования и 
@@ -90,7 +90,7 @@ sudo mount /dev/sdd1 /mnt/data
 
 ![](2_4.png)
 
-# 8. Настройте автомонтирование после перезагрузки (через fstab) и проверьте, что диск остаётся примонтированным;
+## 8. Настройте автомонтирование после перезагрузки (через fstab) и проверьте, что диск остаётся примонтированным;
 
 узнаем UUID
 ```sh
@@ -115,13 +115,13 @@ Filesystem      Size  Used Avail Use% Mounted on
 /dev/sdd1       9.8G  2.1M  9.3G   1% /mnt/data
 ```
 
-# 9. Назначьте владельцем каталога /mnt/data пользователя postgres;
+## 9. Назначьте владельцем каталога /mnt/data пользователя postgres;
 
 ```sh
 sudo chown -R postgres:postgres /mnt/data
 ```
 
-# 10. Перенесите каталог данных PostgreSQL с текущего пути на /mnt/data (с сохранением прав);
+## 10. Перенесите каталог данных PostgreSQL с текущего пути на /mnt/data (с сохранением прав);
 
 ```sh
 pg_lsclusters
@@ -136,14 +136,14 @@ sudo rsync -av /var/lib/postgresql/17/main/ /mnt/data/main/
 sudo mv /var/lib/postgresql/17/main /var/lib/postgresql/17/main.bak
 ```
 
-# 11. Попробуйте запустить кластер; зафиксируйте результат и причину (если не стартовал);
+## 11. Попробуйте запустить кластер; зафиксируйте результат и причину (если не стартовал);
 
 ```sh
  sudo pg_ctlcluster 17 main start
 Error: /var/lib/postgresql/17/main is not accessible or does not exist
 ```
 
-# 12. Найдите в конфигурации /etc/postgresql/версия/main параметр, который указывает на каталог данных, измените его на новый путь и объясните изменение;
+## 12. Найдите в конфигурации /etc/postgresql/версия/main параметр, который указывает на каталог данных, измените его на новый путь и объясните изменение;
 
 ```sh
 sudo nano /etc/postgresql/17/main/postgresql.conf
@@ -158,7 +158,7 @@ data_directory = '/mnt/data/main'
 
 ![](2_5.png)
 
-# 13. Запустите кластер повторно;
+## 13. Запустите кластер повторно;
 
 ```sh
 sudo pg_ctlcluster 17 main start
@@ -167,7 +167,7 @@ Ver Cluster Port Status Owner    Data directory Log file
 17  main    5433 online postgres /mnt/data/main /var/log/postgresql/postgresql-17-main.log
 ```
 
-# 14. Подключитесь через psql и проверьте, что таблица test и данные сохранились;
+## 14. Подключитесь через psql и проверьте, что таблица test и данные сохранились;
 
 ```sh
 sudo -u postgres psql -h localhost -p 5433
@@ -179,4 +179,4 @@ select * from test;
 
 ![](2_6.png)
 
-# Цель работы - перенести каталог данных PostgreSQL на дополнительный диск, достигнута.
+Цель работы - перенести каталог данных PostgreSQL на дополнительный диск, достигнута.
