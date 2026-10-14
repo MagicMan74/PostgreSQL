@@ -21,6 +21,7 @@ sudo -u postgres psql -h localhost -p 5433
 CREATE DATABASE testdb;
 \c testdb; #  connected to database "testdb" as user "postgres".
 ```
+![](3_1.png)
 
 ## 2. Создайте схему testnm, таблицу t1(c1 int) и вставьте строку;
 
@@ -45,6 +46,7 @@ select * from testnm.t1;
    1
  (1 row)
 ```
+![](3_2.png)
 
 ## 3. Создайте роль readonly, выдайте ей CONNECT к testdb, USAGE на testnm, SELECT на таблицы схемы testnm;
 
@@ -77,9 +79,11 @@ SELECT * FROM testnm.t1;
 SELECT * FROM t1;
  ERROR:  relation "t1" does not exist
  LINE 1: select * from t1;
-```
                        ^
+```
 обращение к таблице без указания схемы приводит к ошибке, исправим в следующем пункте
+
+![](3_3.png)
 
 ## 5. Пересоздайте таблицу как testnm.t1, проверьте select * from testnm.t1; и настройте поведение, чтобы обращение к t1 было предсказуемым;
 
