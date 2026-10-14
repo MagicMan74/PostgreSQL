@@ -131,13 +131,12 @@ SELECT * FROM t1;
   1
  (1 row)
 ```
+![](3_4.png)
 
 ## 6. Под testread проверьте попытку create table и insert; при необходимости запретите и подтвердите запрет повторной проверкой.
 
 ```sql
 CREATE TABLE testnm.t2 (c1 int);
-
-testdb=> CREATE TABLE testnm.t2 (c1 int);
  ERROR:  permission denied for schema testnm
  LINE 1: CREATE TABLE testnm.t2 (c1 int);
                      ^
@@ -155,3 +154,4 @@ INSERT INTO testnm.t1 VALUES (2);
 ALTER USER testread SET default_transaction_read_only = on;
 REVOKE CREATE ON SCHEMA public FROM readonly;
 ```
+![](3_5.png)
