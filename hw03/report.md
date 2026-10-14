@@ -1,8 +1,7 @@
---DROP SCHEMA testnm;
---DROP ROLE readonly;
---DROP USER testread;
+# Логический уровень PostgreSQL // ДЗ 3
+постановка задачи на https://otus.ru/learning/531261/
 
-# 1. Создайте кластер PostgreSQL 17 и базу testdb;
+## 1. Создайте кластер PostgreSQL 17 и базу testdb;
 
 перезапустим кластер и проверии его статус
 sudo pg_ctlcluster 17 main restart
@@ -16,7 +15,7 @@ sudo -u postgres psql -h localhost -p 5433
 CREATE DATABASE testdb;
 \c testdb; #  connected to database "testdb" as user "postgres".
 
-# 2. Создайте схему testnm, таблицу t1(c1 int) и вставьте строку;
+## 2. Создайте схему testnm, таблицу t1(c1 int) и вставьте строку;
 
 CREATE SCHEMA testnm;
 CREATE TABLE testnm.t1 (c1 int);
@@ -36,7 +35,7 @@ select * from testnm.t1;
    1
  (1 row)
 
-# 3. Создайте роль readonly, выдайте ей CONNECT к testdb, USAGE на testnm, SELECT на таблицы схемы testnm;
+## 3. Создайте роль readonly, выдайте ей CONNECT к testdb, USAGE на testnm, SELECT на таблицы схемы testnm;
 
 CREATE ROLE readonly;
 GRANT CONNECT ON DATABASE testdb TO readonly;
@@ -44,7 +43,7 @@ GRANT USAGE ON SCHEMA testnm TO readonly;
 GRANT SELECT ON ALL TABLES IN SCHEMA testnm TO readonly;
 --ALTER DEFAULT PRIVILEGES IN SCHEMA testnm GRANT SELECT ON TABLES TO readonly;
 
-# 4. Создайте пользователя testread/test123, назначьте роль readonly, выполните select * from t1; и зафиксируйте результат;
+## 4. Создайте пользователя testread/test123, назначьте роль readonly, выполните select * from t1; и зафиксируйте результат;
 
 CREATE USER testread WITH PASSWORD 'test123';
 GRANT readonly TO testread;
@@ -65,28 +64,13 @@ SELECT * FROM t1;
                        ^
 обращение к таблице без указания схемы приводит к ошибке, исправим в следующем пункте
 
-
---проверим права 
---\dp testnm.t1
---
--- Schema | Name | Type  |     Access privileges      | Column privileges | Policies
-----------+------+-------+----------------------------+-------------------+----------
--- testnm | t1   | table | postgres=arwdDxtm/postgres+|                   |
---        |      |       | readonly=r/postgres        |                   |
-
-# 5. Пересоздайте таблицу как testnm.t1, проверьте select * from testnm.t1; и настройте поведение, чтобы обращение к t1 было предсказуемым;
+## 5. Пересоздайте таблицу как testnm.t1, проверьте select * from testnm.t1; и настройте поведение, чтобы обращение к t1 было предсказуемым;
 
 \c testdb postgres
 
 DROP TABLE testnm.t1;
 CREATE TABLE testnm.t1 (c1 int);
 INSERT INTO testnm.t1 VALUES (1);
-
---\dp testnm.t1
---                            Access privileges
--- Schema | Name | Type  | Access privileges | Column privileges | Policies
-----------+------+-------+-------------------+-------------------+----------
--- testnm | t1   | table |                   |                   |
 
 \c testdb testread
 
@@ -118,7 +102,7 @@ SELECT * FROM t1;
   1
  (1 row)
 
-# 6. Под testread проверьте попытку create table и insert; при необходимости запретите и подтвердите запрет повторной проверкой.
+## 6. Под testread проверьте попытку create table и insert; при необходимости запретите и подтвердите запрет повторной проверкой.
 
 CREATE TABLE testnm.t2 (c1 int);
 
