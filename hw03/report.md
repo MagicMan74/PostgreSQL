@@ -4,11 +4,15 @@
 ## 1. Создайте кластер PostgreSQL 17 и базу testdb;
 
 перезапустим кластер и проверии его статус
+```sh
 sudo pg_ctlcluster 17 main restart
 pg_lsclusters
+```sh
 
+```
  Ver Cluster Port Status Owner    Data directory              Log file
  17  main    5433 online postgres /var/lib/postgresql/17/main /var/log/postgresql/postgresql-17-main.log
+```
 
 подключимся к кластеру и создадим базу и откроем к ней соединение
 sudo -u postgres psql -h localhost -p 5433
