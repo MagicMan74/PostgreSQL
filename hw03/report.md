@@ -3,7 +3,7 @@
 
 ## 1. Создайте кластер PostgreSQL 17 и базу testdb;
 
-перезапустим кластер и проверии его статус
+перезапустим кластер и проверим его статус
 ```sh
 sudo pg_ctlcluster 17 main restart
 pg_lsclusters
@@ -99,24 +99,24 @@ INSERT INTO testnm.t1 VALUES (1);
 SELECT * FROM testnm.t1;
  ERROR:  permission denied for table t1
 ```
-после пересоздания ранее выданные права таке же удалились
+после пересоздания ранее выданные права так же удалились
 
 ```sql
 SELECT * FROM t1;
  ERROR:  relation "t1" does not exist
  LINE 1: SELECT * FROM t1;
 ```
-обращение к таблице без указания схемы попрежнему приводит к ошибке, исправим ниже.
+обращение к таблице без указания схемы по-прежнему приводит к ошибке, исправим ниже.
 
 повторно дадим парава на чтение 
-и что бы не повторять это каждый раз при создании каждой таблицы изменим привелегии
+и что бы не повторять это каждый раз при создании каждой таблицы изменим привилегии
 ```sql
 \c testdb postgres
 GRANT SELECT ON testnm.t1 TO readonly;
 ALTER DEFAULT PRIVILEGES IN SCHEMA testnm GRANT SELECT ON TABLES TO readonly;
 ```
 
-настроим возможность пользователю обращатся к таблице t1 без указания схемы
+настроим возможность пользователю обращаться к таблице t1 без указания схемы
 ```sql
 ALTER USER testread SET search_path TO testnm, public;
 ```
