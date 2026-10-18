@@ -18,13 +18,12 @@ pgbench -c 10 -j 4 -T 60 test
 ![](4_1.png)
 
 ## 4.Зафиксируйте tps baseline и условия теста (scale, время, клиенты/потоки);
-scale	= 10 
-длительность = 60 с 
-клиенты / потоки = 10 / 4 
+scale	= 10
+длительность = 60 с
+клиенты / потоки = 10 / 4
 tps = 2309.360818 
 
 ## 5.Измените параметры PostgreSQL для получения максимальной производительности
-
 исправим параметры настроек postgresql.conf
 fsync = off
 synchronous_commit = off 
@@ -35,7 +34,6 @@ sudo nano /etc/postgresql/17/main/postgresql.conf
 ![](4_2.png)
 
 ## 6.Перезапустите кластер (если требуется) и повторите pgbench с теми же настройками;
-
 ```sh
 pg_lsclusters
 sudo pg_ctlcluster 17 main restart
