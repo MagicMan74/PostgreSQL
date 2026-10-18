@@ -2,6 +2,7 @@
 
 ## 1.Используйте существующую ВМ/стенд с PostgreSQL;
 запустим ранее установленный WSL c Ubuntu 
+
 sudo pg_ctlcluster 17 main restart
 
 ## 2.Подготовьте pgbench: инициализируйте тестовую базу (scale выбрать 10);
