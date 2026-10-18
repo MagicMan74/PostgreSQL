@@ -39,7 +39,6 @@ sudo nano /etc/postgresql/17/main/postgresql.conf
 
 ## 6.Перезапустите кластер (если требуется) и повторите pgbench с теми же настройками;
 ```sh
-pg_lsclusters
 sudo pg_ctlcluster 17 main restart
 sudo su postgres
 pgbench -c 10 -j 4 -T 60 test
