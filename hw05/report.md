@@ -9,7 +9,7 @@ pg_lsclusters
 ```
 
 откроем второй теримнал, в каждом из терминалов подключимся к базе
-и отключим autocommit
+и отключим autocommit, что бы зафиксировать эффект от параллельных транзакций
 
 ```sh
 sudo -u postgres psql -h localhost -p 5433
@@ -20,6 +20,7 @@ sudo -u postgres psql -h localhost -p 5433
 
 # 2 Создайте таблицу orders(id serial, created_at timestamptz, amount numeric) и вставьте 2–3 записи;
 
+подготовим записи для тестов
 ```sql
 CREATE TABLE orders ( id serial PRIMARY KEY,    created_at timestamptz DEFAULT now(),    amount numeric(10, 2));
 INSERT INTO orders (amount) VALUES (100), (100), (100);
@@ -39,68 +40,74 @@ WHERE created_at >= now() - INTERVAL '1 minute';
 
 ![](5_2.png)
 
+Так как запрос "... за последнюю минуту" вносит элемент непредсказуемости если возникла задержка с вводом команд в сессии 2,
+предлагаю от данного условия отказаться. так же исключим подсчет значений и сумм в пользу простой выборки,
+так как список значений у нас минимален и предсказуем.
+
+Повторим эксперимент 
+
 ```sql
--- Сессия 1
+-- Сессия 1 (вернем таблицу в исходное состояние базовых 3х записей)
+BEGIN;
+DELETE FROM orders;
+COMMIT;
+INSERT INTO orders (amount) VALUES (100), (100), (100);
+COMMIT;
+show transaction isolation level;
+SELECT * FROM orders;
+
+-- Сессия 2 (проверим исходную таблицу из второй сессии)
+show transaction isolation level;
+SELECT * FROM orders;
+
+-- Сессия 1 (внесем запись в таблицу)
 BEGIN;
 INSERT INTO orders (amount) VALUES (100);
 COMMIT;
+SELECT * FROM orders;
 
--- Сессия 2 (та же транзакция)
-SELECT count(*) AS order_count, sum(amount) AS total_amount
-FROM orders
-WHERE created_at >= now() - INTERVAL '1 minute';
-
--- Сессия 2
-COMMIT;
+-- Сессия 2 
+SELECT * FROM orders;
 ```
 
 ![](5_3.png)
 
+в READ COMMITTED каждый отдельный оператор видит только зафиксированные данные на момент его выполнения. 
+
 # 4 Repeatable read: повторите сценарий, но обе транзакции начните с set transaction isolation level repeatable read; сравните результаты внутри транзакции и после её завершения;
 
-подготвоим таблицу к новым сценариям, удалим заначения 
-повторим эксперимент с Repeatable read
+повторим эксперимент с изоляцией Repeatable read
 
 ```sql
-(0)
--- Сессия 1 (или любая другая)
+-- Сессия 1 (вернем таблицу в исходное состояние базовых 3х записей)
 DELETE FROM orders;
 COMMIT;
-
-(1)
--- Сессия 1
-BEGIN;
-SET TRANSACTION ISOLATION LEVEL REPEATABLE READ; 
 INSERT INTO orders (amount) VALUES (100), (100), (100);
 COMMIT;
-SELECT count(*) AS total_orders, sum(amount) AS total_amount FROM orders;
-
-(2)
--- Сессия 2
 BEGIN;
-SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
-SELECT count(*) AS order_count, sum(amount) AS total_amount
-FROM orders
-WHERE created_at >= now() - INTERVAL '1 minute';
-```
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ; 
+show transaction isolation level;
+SELECT * FROM orders;
 
-![](5_4.png)
-
-```sql
-(3)
--- Сессия 1
+-- Сессия 2 (проверим исходную таблицу из второй сессии)
 BEGIN;
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ; 
+show transaction isolation level;
+SELECT * FROM orders;
+
+-- Сессия 1 (внесем запись в таблицу)
 INSERT INTO orders (amount) VALUES (100);
 COMMIT;
+SELECT * FROM orders;
 
-(4)
--- Сессия 2 (та же транзакция)
-SELECT  count(*) AS order_count, sum(amount) AS total_amount
-FROM orders
-WHERE created_at >= now() - INTERVAL '1 minute';
+-- Сессия 2 
+SELECT * FROM orders;
 ```
+![](5_4.png)
 
-![](5_5.png)
+Запись от Сессии 1 не видна в Сессии 2.
+REPEATABLE READ гарантирует, что все запросы в одной транзакции видят один и тот же снимок данных (snapshot) на момент первого читающего запроса в транзакции. Новые зафиксированные изменения от других транзакций не видны до завершения текущей.
 
 # 5 В отчёте укажите, где и почему меняются значения, и какой уровень изоляции нужен для отчёта;
+Для отчёта, где несколько запросов должны быть согласованы между собой, нужен Repeatable Read. Для обычной OLTP-нагрузки чаще достаточно Read Committed.
 
