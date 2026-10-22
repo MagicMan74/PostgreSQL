@@ -39,11 +39,7 @@ show transaction isolation level;
 SELECT count(*) AS order_count, sum(amount) AS total_amount
 FROM orders
 WHERE created_at >= now() - INTERVAL '1 minute';
-```
 
-#Повторим эксперимент 
-
-```sql
 -- Сессия 1 (внесем запись в таблицу)
 INSERT INTO orders (amount) VALUES (100);
 COMMIT;
