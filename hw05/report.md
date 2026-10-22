@@ -43,7 +43,7 @@ WHERE created_at >= now() - INTERVAL '1 minute';
 
 #Повторим эксперимент 
 
-#```sql
+```sql
 -- Сессия 1 (внесем запись в таблицу)
 INSERT INTO orders (amount) VALUES (100);
 COMMIT;
