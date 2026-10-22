@@ -57,7 +57,7 @@ FROM orders
 WHERE created_at >= now() - INTERVAL '1 minute';
 ```
 
-![](5_3.png)
+![](5_2.PNG)
 
 в READ COMMITTED каждый отдельный оператор видит только зафиксированные данные на момент его выполнения. 
 
@@ -103,7 +103,7 @@ SELECT count(*) AS order_count, sum(amount) AS total_amount
 FROM orders
 WHERE created_at >= now() - INTERVAL '1 minute';
 ```
-![](5_4.png)
+![](5_3.PNG)
 
 Запись от Сессии 1 не видна в Сессии 2.
 REPEATABLE READ гарантирует, что все запросы в одной транзакции видят один и тот же снимок данных (snapshot) на момент первого читающего запроса в транзакции. Новые зафиксированные изменения от других транзакций не видны до завершения текущей.
