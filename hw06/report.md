@@ -14,7 +14,6 @@ sudo -u postgres psql -h localhost -p 5433
 pgbench -i postgres
 pgbench -c8 -P 6 -T 60 -U postgres postgres
 ```
-![](6_1.png)
 
 ## 3.Зафиксируйте состояние обслуживания после нагрузки: для пользовательских таблиц сохраните n_dead_tup, last_autovacuum, last_vacuum из pg_stat_user_tables;
 
@@ -23,6 +22,7 @@ SELECT relname, n_live_tup, n_dead_tup, trunc(100*n_dead_tup/(n_live_tup+1))::fl
   FROM pg_stat_user_tables WHERE relname LIKE 'pgbench%'
  ORDER BY relname;
 ```
+![](6_1.png)
 
 ## 4.Создайте таблицу с текстовым полем и заполните её 1 000 000 строк (допускается генерация через generate_series);
 
