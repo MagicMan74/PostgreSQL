@@ -107,7 +107,7 @@ WHERE relname = 'test_tab';
 ``` sql
 VACUUM FULL test_tab;
 
-SELECT 'step10', pg_size_pretty(pg_total_relation_size('test_tab')) AS total_size, n_dead_tup, last_autovacuum
+SELECT 'step10.2', pg_size_pretty(pg_total_relation_size('test_tab')) AS total_size, n_dead_tup, last_autovacuum
  FROM pg_stat_user_tables
 WHERE relname = 'test_tab';
 ``` 
