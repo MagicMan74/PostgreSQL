@@ -23,6 +23,7 @@ SELECT relname, n_live_tup, n_dead_tup, trunc(100*n_dead_tup/(n_live_tup+1))::fl
  ORDER BY relname;
 ```
 ![](6_1.png)
+зафиксировали состояние до и после срабатывания автовакума
 
 ## 4.Создайте таблицу с текстовым полем и заполните её 1 000 000 строк (допускается генерация через generate_series);
 
@@ -41,6 +42,7 @@ SELECT 'step5', pg_size_pretty(pg_total_relation_size('test_tab')) AS total_size
  FROM pg_stat_user_tables
 WHERE relname = 'test_tab';
 ```
+размер = 64 Mb, n_dead_tup = 0
 
 ## 6.Выполните 5 полных обновлений строк (добавление символа к текстовому полю), затем зафиксируйте n_dead_tup, last_autovacuum и размер таблицы;
 
@@ -51,6 +53,7 @@ SELECT 'step6', pg_size_pretty(pg_total_relation_size('test_tab')) AS total_size
  FROM pg_stat_user_tables
 WHERE relname = 'test_tab';
 ```
+размер = 347 Mb, n_dead_tup = 4999814
 
 ## 7.Дождитесь срабатывания autovacuum (периодически проверяя last_autovacuum) и зафиксируйте изменения n_dead_tup/размера;
 
@@ -59,6 +62,8 @@ SELECT 'step7', pg_size_pretty(pg_total_relation_size('test_tab')) AS total_size
  FROM pg_stat_user_tables
 WHERE relname = 'test_tab';
 ```
+размер = 347 Mb, n_dead_tup = 0
+размер таблицы после отработки autovacuum не изменился, но счетчик мертвых строк обнулился
 ![](6_2.png)
 
 ## 8.Отключите autovacuum только для этой таблицы, выполните 10 полных обновлений строк и снова зафиксируйте n_dead_tup и размер;
@@ -72,9 +77,19 @@ SELECT 'step8', pg_size_pretty(pg_total_relation_size('test_tab')) AS total_size
  FROM pg_stat_user_tables
 WHERE relname = 'test_tab';
 ```
+размер = 657 Mb, n_dead_tup = 9997399
 
 ## 9.Объясните наблюдения: почему растёт размер и/или число «мёртвых» строк при отключённом обслуживании;
+UPDATE не изменяет исходную строку, а вставляет новую версию строки и помечает старую версию как мёртвую.
+при отключенном autovacuum количество мертвых строк накапливается, что приводит к раздуванию таблицы и 
+к снижению производительности, из-за излишнего сканирования индексов мертвых строк. 
+включение autovacuum не уменьшит размеры таблицы, но вернет прежную производительность.
+для уменьшения размеров таблицы потребуется VACUUM FULL. но для подобных работ на PROD нужно предусматривать 
+технологическое окно, так как операция приведет к блокировке таблицы.
+
+
 ## 10.Включите autovacuum обратно для таблицы;
+
 
 ``` sql
 ALTER TABLE test_tab SET (autovacuum_enabled = true);
@@ -83,4 +98,16 @@ SELECT 'step10', pg_size_pretty(pg_total_relation_size('test_tab')) AS total_siz
  FROM pg_stat_user_tables
 WHERE relname = 'test_tab';
 ```
+размер = 657 Mb, n_dead_tup = 0
 ![](6_3.png)
+
+дополнительно проведем эксперимент по уменьшению размеров таблицы через операцию VACUUM FULL 
+
+``` sql
+VACUUM FULL test_tab;
+
+SELECT 'step10', pg_size_pretty(pg_total_relation_size('test_tab')) AS total_size, n_dead_tup, last_autovacuum
+ FROM pg_stat_user_tables
+WHERE relname = 'test_tab';
+``` 
+размер = 71 Mb, n_dead_tup = 0
