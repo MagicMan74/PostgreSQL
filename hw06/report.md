@@ -54,6 +54,7 @@ SELECT 'step6', pg_size_pretty(pg_total_relation_size('test_tab')) AS total_size
 WHERE relname = 'test_tab';
 ```
 размер = 347 Mb, n_dead_tup = 4999814
+таблица выросла почти в 6 раз. количество мертвых строк увеличивается кратно количествам строк первоначальной таблицы после каждого обновления.
 
 ## 7.Дождитесь срабатывания autovacuum (периодически проверяя last_autovacuum) и зафиксируйте изменения n_dead_tup/размера;
 
@@ -62,8 +63,9 @@ SELECT 'step7', pg_size_pretty(pg_total_relation_size('test_tab')) AS total_size
  FROM pg_stat_user_tables
 WHERE relname = 'test_tab';
 ```
+autovacuum отработал в течении минуты.
 размер = 347 Mb, n_dead_tup = 0
-размер таблицы после отработки autovacuum не изменился, но счетчик мертвых строк обнулился
+размер таблицы после отработки autovacuum не изменился, но счетчик мертвых строк обнулился.
 
 ![](6_2.png)
 
