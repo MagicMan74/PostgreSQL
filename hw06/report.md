@@ -114,3 +114,20 @@ SELECT 'step10.2', pg_size_pretty(pg_total_relation_size('test_tab')) AS total_s
 WHERE relname = 'test_tab';
 ``` 
 размер = 71 Mb, n_dead_tup = 0
+
+## Задание со звёздочкой. написать анонимный блок, который выполняет 10 итераций обновления таблицы в цикле и выводит номер итерации в сообщении.
+напишем блок который выполнит в цикле рутинный функционал обновления строк
+
+```sql
+DO $$
+DECLARE
+    i int;
+BEGIN
+    FOR i IN 1..10 LOOP
+        UPDATE test_tab SET txt = txt || 'B';
+        RAISE NOTICE 'UPDATE % from 10', i;
+    END LOOP;
+    RAISE NOTICE 'UPDATEs done';
+END
+$$;
+```
