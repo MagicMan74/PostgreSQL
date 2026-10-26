@@ -57,7 +57,7 @@ WHERE relname = 'test_tab';
 SELECT 'step7', pg_size_pretty(pg_total_relation_size('test_tab')) AS total_size, n_dead_tup, last_autovacuum
  FROM pg_stat_user_tables
 WHERE relname = 'test_tab';
-```sql
+```
 
 ## 8.Отключите autovacuum только для этой таблицы, выполните 10 полных обновлений строк и снова зафиксируйте n_dead_tup и размер;
 
