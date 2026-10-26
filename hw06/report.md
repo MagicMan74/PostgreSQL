@@ -1,4 +1,4 @@
-# MVCC, vacuum и autovacuum // ДЗ 6
+# vacuum и autovacuum // ДЗ 6
 
 ## 1.Создайте ВМ (2 vCPU, 4 GB RAM, SSD 10 GB) и установите PostgreSQL 17 с дефолтными настройками;
 
