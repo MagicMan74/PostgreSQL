@@ -14,6 +14,7 @@ sudo -u postgres psql -h localhost -p 5433
 pgbench -i postgres
 pgbench -c8 -P 6 -T 60 -U postgres postgres
 ```
+![](6_1.png)
 
 ## 3.Зафиксируйте состояние обслуживания после нагрузки: для пользовательских таблиц сохраните n_dead_tup, last_autovacuum, last_vacuum из pg_stat_user_tables;
 
@@ -58,6 +59,7 @@ SELECT 'step7', pg_size_pretty(pg_total_relation_size('test_tab')) AS total_size
  FROM pg_stat_user_tables
 WHERE relname = 'test_tab';
 ```
+![](6_2.png)
 
 ## 8.Отключите autovacuum только для этой таблицы, выполните 10 полных обновлений строк и снова зафиксируйте n_dead_tup и размер;
 
@@ -81,3 +83,4 @@ SELECT 'step10', pg_size_pretty(pg_total_relation_size('test_tab')) AS total_siz
  FROM pg_stat_user_tables
 WHERE relname = 'test_tab';
 ```
+![](6_3.png)
