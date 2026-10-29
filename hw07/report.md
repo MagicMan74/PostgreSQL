@@ -74,7 +74,22 @@ FROM pg_stat_wal;
 sudo -u postgres pgbench -c 10 -j 2 -T 600 pgbench_test
 ```
 
-![](7_2.png)
+```
+pgbench (17.11 (Ubuntu 17.11-1.pgdg26.04+2))
+starting vacuum...end.
+transaction type: <builtin: TPC-B (sort of)>
+scaling factor: 10
+query mode: simple
+number of clients: 10
+number of threads: 2
+maximum number of tries: 1
+duration: 600 s
+number of transactions actually processed: 703510
+number of failed transactions: 0 (0.000%)
+latency average = 8.530 ms
+initial connection time = 8.659 ms
+tps = 1172.335740 (without initial connection time)
+```
 
 tps = 1172.335740 (without initial connection time)
 
