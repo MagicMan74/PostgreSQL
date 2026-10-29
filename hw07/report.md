@@ -159,7 +159,7 @@ SELECT pg_reload_conf();
 ```bash
 pgbench -c 10 -j 2 -T 600 pgbench_test
 ```
-
+![](7_4.png)
 tps = 12103.305063 (without initial connection time)
 
 Разница первого и второго прогона в tps на порядок.
