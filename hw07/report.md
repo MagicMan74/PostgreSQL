@@ -139,7 +139,7 @@ sudo grep -i "checkpoint starting" /var/log/postgresql/postgresql-17-main.log
 
 ![](7_3.png)
 
-Так как за 10 минут в логах фиксируются "checkpoint starting: time" (запуск по расписанию checkpoint_timeout) и 
+Так как за 10 минут тестирования и несколько минут позже в логах фиксируются "checkpoint starting: time" (запуск по расписанию checkpoint_timeout) и 
 отсутсвуют "checkpoint starting: wal" (запуск из-за заполнения WAL-сегментов) 
 констатируем что контрольные точки шли строго по расписанию.
 и их количество около 20 штук, что совпадает с расчетными значениями выше.
