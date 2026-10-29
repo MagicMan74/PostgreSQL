@@ -129,7 +129,7 @@ A / B = 2477139986 / 22 = 112597272.09
 
 ## 7. Проверьте по статистике/логам, выполнялись ли контрольные точки строго по расписанию, и объясните отклонения;
 
-проверим логи на наличие "checkpoint starting"
+проверим логи на наличие "checkpoint starting". ожидаемо логи хронятся здесь /var/log/postgresql/postgresql-17-main.log
 
 ```bash
 sudo grep -i "checkpoint starting" /var/log/postgresql/postgresql-17-main.log
