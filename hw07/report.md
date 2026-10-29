@@ -95,7 +95,7 @@ tps = 1172.335740 (without initial connection time)
 
 ## 5. Зафиксируйте конечные значения статистики контрольных точек и WAL (снимок «после»);
 
-Снимим статистику контрольных точек после
+Снимим статистику контрольных точек «после».
 ```sql
 SELECT num_timed, num_requested, write_time, sync_time, buffers_written
 FROM pg_stat_checkpointer;
