@@ -88,14 +88,12 @@ number of transactions actually processed: 703510
 number of failed transactions: 0 (0.000%)
 latency average = 8.530 ms
 initial connection time = 8.659 ms
-tps = 1172.335740 (without initial connection time)
+**tps = 1172.335740** (without initial connection time)
 ```
-
-tps = 1172.335740 (without initial connection time)
 
 ## 5. Зафиксируйте конечные значения статистики контрольных точек и WAL (снимок «после»);
 
-Снимим статистику контрольных точек «после».
+Снимем статистику контрольных точек «после».
 ```sql
 SELECT num_timed, num_requested, write_time, sync_time, buffers_written
 FROM pg_stat_checkpointer;
@@ -131,7 +129,7 @@ A / B = 2477139986 / 22 = 112597272.09
 
 ## 7. Проверьте по статистике/логам, выполнялись ли контрольные точки строго по расписанию, и объясните отклонения;
 
-проверим логи на наличее "checkpoint starting"
+проверим логи на наличие "checkpoint starting"
 
 ```bash
 sudo grep -i "checkpoint starting" /var/log/postgresql/postgresql-17-main.log
@@ -161,9 +159,9 @@ SELECT pg_reload_conf();
 pgbench -c 10 -j 2 -T 600 pgbench_test
 ```
 ![](7_4.png)
-tps = 12103.305063 (without initial connection time)
+**tps = 12103.305063** (without initial connection time)
 
 Разница первого и второго прогона в tps на порядок.
-Объесние кроется в том что в синхронном режиме база не возвращает управление клиенту после каждого коммита, пока WAL-запись не будет синхронизирована с диском (fsync).
+Объясние кроется в том, что в синхронном режиме база не возвращает управление клиенту после каждого коммита, пока WAL-запись не будет синхронизирована с диском (fsync).
 В асинхронном режиме подтверждение коммита происходит без ожидания fsync WAL, это резко увеличивает TPS.
 Но при этом растет риск потери последних коммитов при аварийном завершении. 
