@@ -13,7 +13,7 @@ sudo -u postgres psql -h localhost -p 5433
 create database pgbench_test;
 ```
 
-И инициализируйте схему pgbench, как это выполнялось в hw04
+И инициализируем схему pgbench, как это выполнялось в hw04
 ```sh
 sudo -u postgres pgbench -i -s 10 pgbench_test;
 ```
