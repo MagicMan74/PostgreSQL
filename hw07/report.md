@@ -74,7 +74,7 @@ FROM pg_stat_wal;
 sudo -u postgres pgbench -c 10 -j 2 -T 600 pgbench_test
 ```
 
-![](7_1.png)
+![](7_2.png)
 
 tps = 1172.335740 (without initial connection time)
 
