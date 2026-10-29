@@ -88,7 +88,7 @@ number of transactions actually processed: 703510
 number of failed transactions: 0 (0.000%)
 latency average = 8.530 ms
 initial connection time = 8.659 ms
-**tps = 1172.335740** (without initial connection time)
+tps = 1172.335740 (without initial connection time)
 ```
 
 ## 5. Зафиксируйте конечные значения статистики контрольных точек и WAL (снимок «после»);
@@ -159,7 +159,7 @@ SELECT pg_reload_conf();
 pgbench -c 10 -j 2 -T 600 pgbench_test
 ```
 ![](7_4.png)
-**tps = 12103.305063** (without initial connection time)
+tps = 12103.305063 (without initial connection time)
 
 Разница первого и второго прогона в tps на порядок.
 Объясние кроется в том, что в синхронном режиме база не возвращает управление клиенту после каждого коммита, пока WAL-запись не будет синхронизирована с диском (fsync).
