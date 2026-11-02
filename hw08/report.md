@@ -16,6 +16,7 @@ SELECT pg_reload_conf();
 SHOW deadlock_timeout;  -- проверим
 SHOW log_lock_waits;
 ```
+![](8_1.png)
 
 ## 2. Воспроизведите ожидание блокировки дольше 200 мс и подтвердите это записью в журнале сообщений;
 
@@ -32,12 +33,13 @@ UPDATE locks SET val = val - 1 WHERE id = 1;
 ROLLBACK;
 -- сессия 2 выходит из блокировки
 ```
+![](8_2.png)
 
 проверим записи в журнале 
 ```sh
 tail -n 20 /var/log/postgresql/postgresql-17-main.log
 ```
-!! 8_3.PGN
+![](8_3.png)
 
 и видим запись о блокировке
        	
@@ -86,6 +88,7 @@ WHERE l.relation = 'locks'::regclass
    OR l.transactionid IS NOT NULL
 ORDER BY l.granted DESC, l.pid;
 ```
+![](8_4.png)
 
 получаем результат вида
 ```sql
@@ -145,10 +148,13 @@ CONTEXT:  while updating tuple (0,9) in relation "locks"
 postgres=!#
 ```
 
+![](8_5.png)
+
 проверим логи
 ```sh
 tail -n 20 /var/log/postgresql/postgresql-17-main.log
 ```
+![](8_6.png)
 
 ```sh
 2026-11-02 16:28:17.489 +05 [32345] postgres@postgres STATEMENT:  UPDATE locks SET val = 1 WHERE id = 3;
@@ -172,6 +178,7 @@ tail -n 20 /var/log/postgresql/postgresql-17-main.log
 2026-11-02 16:28:26.971 +05 [32234] LOG:  checkpoint starting: time
 2026-11-02 16:28:27.098 +05 [32234] LOG:  checkpoint complete: wrote 2 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.105 s, sync=0.005 s, total=0.127 s; sync files=2, longest=0.004 s, average=0.003 s; distance=0 kB, estimate=77 kB; lsn=4/EC3A0B78, redo lsn=4/EC3A0B18
 ```
+
 постфактум разобраться можно, особенно если включены log_lock_waits и логирование запросов; 
 событие deadlock detected фиксируется в логах, отталикиваясь от этого события можно раскрутить всю цепочку событий.
 
