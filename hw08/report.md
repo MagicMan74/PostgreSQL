@@ -133,13 +133,17 @@ INSERT INTO locks VALUES (2, 0);
 INSERT INTO locks VALUES (3, 0);
 BEGIN; --1
  UPDATE locks SET val = 1 WHERE id = 1;
+
 BEGIN; --2
  UPDATE locks SET val = 1 WHERE id = 2;
+
 BEGIN; --3
  UPDATE locks SET val = 1 WHERE id = 3;
 
  UPDATE locks SET val = 1 WHERE id = 2; -- 1
+
  UPDATE locks SET val = 1 WHERE id = 3; -- 2
+
  UPDATE locks SET val = 1 WHERE id = 1; -- 3
 
 --ловим уведомление в сессии 3, которое говорит что deadlock принудительно разомкнут
