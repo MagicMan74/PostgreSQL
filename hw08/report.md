@@ -2,42 +2,41 @@
 
 ## 1. Настройте PostgreSQL так, чтобы в журнал сообщений записывались ожидания блокировок дольше 200 мс;
 
-sh
+```sh
 sudo pg_ctlcluster 17 main restart
 pg_lsclusters
 sudo -u postgres psql -h localhost -p 5433
+```
 
-sql
+```sql
 ALTER SYSTEM SET deadlock_timeout = '200ms'; --  дольше 200 мс 
 ALTER SYSTEM SET log_lock_waits = on; -- ожидание блокировки вкл
 SELECT pg_reload_conf();
 
 SHOW deadlock_timeout;  -- проверим
 SHOW log_lock_waits;
+```
 
 ## 2. Воспроизведите ожидание блокировки дольше 200 мс и подтвердите это записью в журнале сообщений;
 
-sql -- сессия 1
-BEGIN;
+```sql 
+BEGIN;-- сессия 1
 CREATE TABLE locks (id int PRIMARY KEY, val int);
 INSERT INTO locks VALUES (1, 0);
 UPDATE locks SET val = val + 1 WHERE id = 1;
-
 -- не завершаем транзакцию и открываем вторую сессию
--- сессия 2
-BEGIN;
+BEGIN;-- сессия 2
 UPDATE locks SET val = val - 1 WHERE id = 1;
-
 -- вторая зависает. ждем несколько секунд и завершаем первую сессию
 -- сессия 1
 ROLLBACK;
-
 -- сессия 2 выходит из блокировки
+```
 
 проверим записи в журнале 
-sh
+```sh
 tail -n 20 /var/log/postgresql/postgresql-17-main.log
-
+```
 !! 8_3.PGN
 
 и видим запись о блокировке
@@ -45,13 +44,15 @@ tail -n 20 /var/log/postgresql/postgresql-17-main.log
 ## 3. Откройте три сессии psql к одной базе данных;
 ## 4. Создайте тестовую таблицу и добавьте одну строку, которую будут обновлять все сессии;
 
-sql -- 1
+```sql -- 1
 DROP TABLE locks;
 CREATE TABLE locks (id int PRIMARY KEY, val int);
 INSERT INTO locks VALUES (1, 0);
+```
 
 ## 5. Выполните в трёх сессиях команды UPDATE, обновляющие одну и ту же строку, так чтобы одна транзакция удерживала блокировку, а остальные ожидали;
 
+```sql
 BEGIN; -- 1
 UPDATE locks SET val = val + 1 WHERE id = 1;
 
@@ -62,11 +63,12 @@ UPDATE locks SET val = val + 1 WHERE id = 1;
 sql -- 3 ожидает 
 BEGIN;
 UPDATE locks SET val = val + 1 WHERE id = 1;
+```
 
 ## 6. Во время ожидания снимите список блокировок из представления pg_locks и сохраните его для отчёта;
 
 
-Sql -- 4 сессия
+```Sql -- 4 сессия
 SELECT
     l.pid,
     l.locktype,
@@ -83,7 +85,10 @@ LEFT JOIN pg_stat_activity a ON a.pid = l.pid
 WHERE l.relation = 'locks'::regclass
    OR l.transactionid IS NOT NULL
 ORDER BY l.granted DESC, l.pid;
+```
 
+получаем результат вида
+```sql
   pid  |   locktype    |       mode       | granted | transactionid | relname | page | tuple |                    query                     |        state
 -------+---------------+------------------+---------+---------------+---------+------+-------+----------------------------------------------+---------------------
  32345 | transactionid | ExclusiveLock    | t       |       8014498 |         |      |       | UPDATE locks SET val = val + 2 WHERE id = 1; | active
@@ -96,6 +101,7 @@ ORDER BY l.granted DESC, l.pid;
  32345 | transactionid | ShareLock        | f       |       8014497 |         |      |       | UPDATE locks SET val = val + 2 WHERE id = 1; | active
  32631 | tuple         | ExclusiveLock    | f       |               | locks   |    0 |     6 | UPDATE locks SET val = val + 3 WHERE id = 1; | active
 (9 rows)
+```
 
 ## 7. Объясните смысл каждой блокировки из pg_locks (что блокируется, какой режим, кто держит, кто ожидает);
 
@@ -115,6 +121,7 @@ ORDER BY l.granted DESC, l.pid;
 
 ## 8. Воспроизведите взаимоблокировку трех транзакций. Можно ли разобраться в ситуации постфактум, изучая журнал сообщений?
 
+```sql
 INSERT INTO locks VALUES (2, 0);
 INSERT INTO locks VALUES (3, 0);
 BEGIN; --1
@@ -128,6 +135,7 @@ BEGIN; --3
  UPDATE locks SET val = 1 WHERE id = 3; -- 2
  UPDATE locks SET val = 1 WHERE id = 1; -- 3
 
+--ловим уведомление в сессии 3, которое говорит что deadlock принудительно разомкнут
 ERROR:  deadlock detected
 DETAIL:  Process 32631 waits for ShareLock on transaction 8014502; blocked by process 549.
 Process 549 waits for ShareLock on transaction 8014503; blocked by process 32345.
@@ -135,10 +143,14 @@ Process 32345 waits for ShareLock on transaction 8014504; blocked by process 326
 HINT:  See server log for query details.
 CONTEXT:  while updating tuple (0,9) in relation "locks"
 postgres=!#
+```
 
 проверим логи
+```sh
 tail -n 20 /var/log/postgresql/postgresql-17-main.log
+```
 
+```sh
 2026-11-02 16:28:17.489 +05 [32345] postgres@postgres STATEMENT:  UPDATE locks SET val = 1 WHERE id = 3;
 2026-11-02 16:28:23.954 +05 [32631] postgres@postgres LOG:  process 32631 detected deadlock while waiting for ShareLock on transaction 8014502 after 200.134 ms
 2026-11-02 16:28:23.954 +05 [32631] postgres@postgres DETAIL:  Process holding the lock: 549. Wait queue: .
@@ -159,7 +171,7 @@ tail -n 20 /var/log/postgresql/postgresql-17-main.log
 2026-11-02 16:28:23.954 +05 [32345] postgres@postgres STATEMENT:  UPDATE locks SET val = 1 WHERE id = 3;
 2026-11-02 16:28:26.971 +05 [32234] LOG:  checkpoint starting: time
 2026-11-02 16:28:27.098 +05 [32234] LOG:  checkpoint complete: wrote 2 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.105 s, sync=0.005 s, total=0.127 s; sync files=2, longest=0.004 s, average=0.003 s; distance=0 kB, estimate=77 kB; lsn=4/EC3A0B78, redo lsn=4/EC3A0B18
-
+```
 постфактум разобраться можно, особенно если включены log_lock_waits и логирование запросов; 
 событие deadlock detected фиксируется в логах, отталикиваясь от этого события можно раскрутить всю цепочку событий.
 
