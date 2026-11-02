@@ -62,13 +62,13 @@ INSERT INTO locks VALUES (1, 0);
 BEGIN; -- 1
 UPDATE locks SET val = val + 1 WHERE id = 1;
 
-sql -- 2 ожидает
-BEGIN;
+BEGIN; -- 2 
 UPDATE locks SET val = val + 1 WHERE id = 1;
+-- сессия 2 ожидает
 
-sql -- 3 ожидает 
-BEGIN;
+BEGIN; -- 3 
 UPDATE locks SET val = val + 1 WHERE id = 1;
+-- сессия 3 ожидает
 ```
 
 ## 6. Во время ожидания снимите список блокировок из представления pg_locks и сохраните его для отчёта;
