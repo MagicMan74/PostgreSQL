@@ -147,6 +147,9 @@ ACC (ACC_ID PK, AGR_ID FK → AGR.AGR_ID)
 PAY (PAY_ID PK, ACC_ID FK → ACC.ACC_ID)
 ```
 
+Добавим памятку для наглядности
+![](9_1.png)
+
 ## 1. Реализовать прямое соединение двух или более таблиц
 
 ```sql
