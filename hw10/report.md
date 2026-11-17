@@ -128,7 +128,7 @@ WHERE STATUS = 'executed' AND PAY_DATE >= '2026-11-01';
 используем оператор text_pattern_ops который заставляет индекс сортировать строки строго посимвольно, побайтово, игнорируя языковые правила.
 
 ```sql
--- (4) Функциональный индекс по LOWER(FULL_NAME) для поиска клиентов без учёта регистра
+-- (4) Функциональный индекс по LOWER(FULL_NAME) на UL_CLI.FULL_NAME
 CREATE INDEX idx_ul_cli_name_lower
     ON UL_CLI (LOWER(FULL_NAME) text_pattern_ops);
 
