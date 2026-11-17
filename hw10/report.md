@@ -23,7 +23,7 @@
 EXPLAIN ANALYZE SELECT * FROM PAY WHERE ACC_ID = 1;
                                           QUERY PLAN
 -----------------------------------------------------------------------------------------------
- **Seq Scan on pay**  (cost=0.00..1.07 rows=1 width=496) (actual time=0.059..0.060 rows=3 loops=1)
+ Seq Scan on pay  (cost=0.00..1.07 rows=1 width=496) (actual time=0.059..0.060 rows=3 loops=1)
    Filter: (acc_id = 1)
    Rows Removed by Filter: 3
  Planning Time: 0.159 ms
@@ -62,7 +62,7 @@ EXPLAIN ANALYZE SELECT * FROM PAY WHERE ACC_ID = 1;
 RESET enable_seqscan;
 ```
 
-Видим что планировщик переключился с Seq Scan на Index Scan using idx_pay_acc_id, когда мы задействовали индексированное поле ACC_ID. 
+Видим что планировщик переключился с __Seq Scan__ на __Index Scan using idx_pay_acc_id__, когда мы задействовали индексированное поле ACC_ID. 
 На маленькой таблице выигрыш по времени отсутствует, но при масштабировании должен быть приличный прирост в скорости.
 
 ## 2. Индекс для полнотекстового поиска (Full-Text Search GIN) 
