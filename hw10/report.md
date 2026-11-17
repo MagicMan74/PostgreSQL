@@ -21,14 +21,18 @@
 ```sql
 -- план до создания индекса
 EXPLAIN ANALYZE SELECT * FROM PAY WHERE ACC_ID = 1;
-                                          QUERY PLAN
------------------------------------------------------------------------------------------------
- Seq Scan on pay  (cost=0.00..1.07 rows=1 width=496) (actual time=0.059..0.060 rows=3 loops=1)
-   Filter: (acc_id = 1)
-   Rows Removed by Filter: 3
- Planning Time: 0.159 ms
- Execution Time: 0.097 ms
+```
+>[!NOTE]
+>```sql                                          QUERY PLAN
+>-----------------------------------------------------------------------------------------------
+> Seq Scan on pay  (cost=0.00..1.07 rows=1 width=496) (actual time=0.059..0.060 rows=3 loops=1)
+>   Filter: (acc_id = 1)
+>   Rows Removed by Filter: 3
+> Planning Time: 0.159 ms
+> Execution Time: 0.097 ms
+>```
 
+```sql
 -- (1) B-tree индекс на PAY.ACC_ID
 CREATE INDEX idx_pay_acc_id ON PAY (ACC_ID);
 
