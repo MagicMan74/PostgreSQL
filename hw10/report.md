@@ -34,7 +34,9 @@ CREATE INDEX idx_pay_acc_id ON PAY (ACC_ID);
 
 -- план после создания индекса
 EXPLAIN ANALYZE SELECT * FROM PAY WHERE ACC_ID = 1;
+```
 
+```sql
                                           QUERY PLAN
 -----------------------------------------------------------------------------------------------
  Seq Scan on pay  (cost=0.00..1.07 rows=1 width=496) (actual time=0.006..0.006 rows=3 loops=1)
@@ -51,14 +53,19 @@ EXPLAIN ANALYZE SELECT * FROM PAY WHERE ACC_ID = 1;
 -- принудительно выключаем Seq Scan
 SET enable_seqscan = off;
 EXPLAIN ANALYZE SELECT * FROM PAY WHERE ACC_ID = 1;
+```
 
+```sql
                                                       QUERY PLAN
 ----------------------------------------------------------------------------------------------------------------------
  Index Scan using idx_pay_acc_id on pay  (cost=0.13..8.15 rows=1 width=496) (actual time=0.137..0.138 rows=3 loops=1)
    Index Cond: (acc_id = 1)
  Planning Time: 0.293 ms
  Execution Time: 0.152 ms
+```
 
+```sql
+-- вернем Seq Scan
 RESET enable_seqscan;
 ```
 
@@ -83,7 +90,9 @@ EXPLAIN ANALYZE
 SELECT PAY_ID, PURPOSE
 FROM PAY
 WHERE to_tsvector('russian', PURPOSE) @@ plainto_tsquery('russian', 'налог');
+```
 
+```sql
                                                        QUERY PLAN
 ------------------------------------------------------------------------------------------------------------------------
  Bitmap Heap Scan on pay  (cost=8.52..12.79 rows=1 width=422) (actual time=0.011..0.011 rows=1 loops=1)
@@ -111,7 +120,9 @@ EXPLAIN ANALYZE
 SELECT PAY_ID, PAY_DATE, AMOUNT
 FROM PAY
 WHERE STATUS = 'executed' AND PAY_DATE >= '2026-11-01';
+```
 
+```sql
                                                          QUERY PLAN
 ----------------------------------------------------------------------------------------------------------------------------
  Index Scan using idx_pay_executed_date on pay  (cost=0.13..8.15 rows=1 width=26) (actual time=0.089..0.091 rows=5 loops=1)
@@ -136,7 +147,9 @@ EXPLAIN ANALYZE
 SELECT CLIENT_ID, FULL_NAME
 FROM UL_CLI
 WHERE LOWER(FULL_NAME) LIKE 'ооо%';
+```
 
+```sql
                                                            QUERY PLAN
 --------------------------------------------------------------------------------------------------------------------------------
  Index Scan using idx_ul_cli_name_lower on ul_cli  (cost=0.13..8.16 rows=1 width=262) (actual time=0.079..0.095 rows=2 loops=1)
@@ -161,7 +174,9 @@ EXPLAIN ANALYZE
 SELECT AGR_ID, AGR_NO, OPEN_DATE
 FROM AGR
 WHERE CLIENT_ID = 1 AND AGR_TYPE = 'РКО';
+```
 
+```sql
                                                         QUERY PLAN
 --------------------------------------------------------------------------------------------------------------------------
  Index Scan using idx_agr_client_type on agr  (cost=0.13..8.15 rows=1 width=86) (actual time=0.014..0.014 rows=1 loops=1)
@@ -173,6 +188,6 @@ WHERE CLIENT_ID = 1 AND AGR_TYPE = 'РКО';
 Видим что планировщик использовал __Index Scan using idx_agr_client_type__. оба условия попали в Index Cond, а значит индекс используется по двум колонкам сразу.
 
 ## Проблемы с которыми пришлось столкнуться в ходе работы:
-1.Маленьким объёмом данных, из-за которого PostgreSQL игнорирует индексы в пользу Seq Scan. потребовалось принудительно отключать Seq Scan
+1.Маленьким объёмом данных, из-за которого PostgreSQL игнорирует индексы в пользу Seq Scan. потребовалось принудительно отключать Seq Scan.
 2.Для срабатывания функционального индекса пришлось подбирать дополнительный оператор text_pattern_ops который заставляет индекс сортировать строки строго посимвольно, игнорируя языковые правила.
 3.Для сробатывания GIN-индекса при полнотекстовом поиске пришлось оборачивать запрос в to_tsvector.
