@@ -52,13 +52,12 @@ EXPLAIN ANALYZE SELECT * FROM PAY WHERE ACC_ID = 1;
 SET enable_seqscan = off;
 EXPLAIN ANALYZE SELECT * FROM PAY WHERE ACC_ID = 1;
 
-                                                       QUERY PLAN
-------------------------------------------------------------------------------------------------------------------------
- Index Scan using idx_pay_acc_id on pay  (cost=0.13..8.15 rows=1 width=496) (actual time=1.303..1.304 rows=3 loops=1)
+                                                      QUERY PLAN
+----------------------------------------------------------------------------------------------------------------------
+ Index Scan using idx_pay_acc_id on pay  (cost=0.13..8.15 rows=1 width=496) (actual time=0.137..0.138 rows=3 loops=1)
    Index Cond: (acc_id = 1)
-   Buffers: shared hit=1 read=1
- Planning Time: 0.042 ms
- Execution Time: 1.320 ms
+ Planning Time: 0.293 ms
+ Execution Time: 0.152 ms
 
 RESET enable_seqscan;
 ```
