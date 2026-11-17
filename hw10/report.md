@@ -95,7 +95,7 @@ WHERE to_tsvector('russian', PURPOSE) @@ plainto_tsquery('russian', 'налог'
  Execution Time: 0.023 ms
 ```
 
-Видим что планировщик использовал Bitmap Heap Scan on idx_pay_purpose, индекс задействован, когда идет поиск по назачению платежа.
+Видим что планировщик использовал __Bitmap Heap Scan on idx_pay_purpose__, индекс задействован, когда идет поиск по назачению платежа.
 
 ## 3. Частичный индекс (partial index) 
 
@@ -120,7 +120,7 @@ WHERE STATUS = 'executed' AND PAY_DATE >= '2026-11-01';
  Execution Time: 0.102 ms
 ```
 
-Видим что планировщик использовал Index Scan using idx_pay_executed_date, частичный индекс задействован, когда соблюдается условие индекса STATUS = 'executed'.
+Видим что планировщик использовал __Index Scan using idx_pay_executed_date__, частичный индекс задействован, когда соблюдается условие индекса STATUS = 'executed'.
 
 ## 4. Функциональный индекс (index on expression)
 
@@ -146,7 +146,7 @@ WHERE LOWER(FULL_NAME) LIKE 'ооо%';
  Execution Time: 0.106 ms
 ```
 
-Видим что планировщик использовал Index Scan using idx_ul_cli_name_lower, планировщик обнаружил выражение LOWER(FULL_NAME) и воспользовался функциональным индексом.
+Видим что планировщик использовал __Index Scan using idx_ul_cli_name_lower__, планировщик обнаружил выражение LOWER(FULL_NAME) и воспользовался функциональным индексом.
 
 ## 5. Многоколоночный индекс (composite index)
 
@@ -170,5 +170,5 @@ WHERE CLIENT_ID = 1 AND AGR_TYPE = 'РКО';
  Execution Time: 0.025 ms
 ```
 
-Видим что планировщик использовал Index Scan using idx_agr_client_type. оба условия попали в Index Cond, а значит индекс используется по двум колонкам сразу.
+Видим что планировщик использовал __Index Scan using idx_agr_client_type__. оба условия попали в Index Cond, а значит индекс используется по двум колонкам сразу.
 
