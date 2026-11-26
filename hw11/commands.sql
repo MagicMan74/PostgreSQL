@@ -72,10 +72,33 @@ FROM bookings
 WHERE book_date >= '2025-09-01'
   AND book_date <  '2025-10-01';
 
---Проверим операции вставки, обновления и удаления 
-INSERT INTO bookings (book_ref, book_date, total_amount) 
- VALUES ('ZZZ999', '2025-09-15 10:00:00+03', 100.00);
-UPDATE bookings
- SET total_amount = 101.00 WHERE book_ref = 'ZZZ999';
+-- Проверим операции вставки, обновления и удаления 
+-- добовляем строку - строка остается в ожидаемой секции
+INSERT INTO bookings (book_ref, book_date, total_amount)
+VALUES ('TST001', '2025-10-15 12:00:00+05', 100.00);
+
+SELECT tableoid::regclass AS partition, book_ref, book_date, total_amount
+FROM bookings WHERE book_ref = 'TST001';
+-- Ожидаем: bookings_2025_10
+
+-- меняем сумму - строка остается в текущей секции
+UPDATE bookings SET total_amount = 101.00
+WHERE book_ref = 'TST001';
+
+SELECT tableoid::regclass AS partition, total_amount
+FROM bookings WHERE book_ref = 'TST001';
+-- Ожидаем: bookings_2025_10, total_amount = 101.00
+
+-- меняющий ключ секционирования — строка переедет в другую секцию
+UPDATE bookings SET book_date = '2025-11-05 09:00:00+05'
+WHERE book_ref = 'TST001';
+
+SELECT tableoid::regclass AS partition, book_date
+FROM bookings WHERE book_ref = 'TST001';
+-- Ожидаем: bookings_2025_11 — PostgreSQL сам перенёс строку
+
+-- удаление строк
 DELETE FROM bookings
- WHERE book_ref = 'ZZZ999'; 
+WHERE book_ref = 'TST001';
+
+SELECT count(*) FROM bookings WHERE book_ref = 'TST001';
