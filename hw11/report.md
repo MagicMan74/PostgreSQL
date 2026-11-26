@@ -259,7 +259,7 @@ WHERE book_date >= '2025-10-01' AND book_date < '2025-11-01';
                      Filter: ((book_date >= '2025-10-01 00:00:00+05'::timestamp with time zone) AND (book_date < '2025-11-01 00:00:00+05'::timestamp with time zone))
  Planning Time: 1.678 ms
  Execution Time: 31.185 ms
-```
+``` 
 
 ```sql
 --проверка 2. Сумма выручки по месяцам 
