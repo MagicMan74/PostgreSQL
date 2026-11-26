@@ -15,7 +15,7 @@ SET search_path TO bookings;
 
 -- Создаём новую секционированную таблицу с той же структурой что и оригинал,
 -- но с составным первичным ключом (book_ref, book_date).
-CREATE TABLE bookings_partitioned (
+CREATE TABLE bookings_part (
     book_ref     char(6)      NOT NULL,
     book_date    timestamptz  NOT NULL,
     total_amount numeric(10,2) NOT NULL,
@@ -58,19 +58,41 @@ FROM bookings
 GROUP BY tableoid
 ORDER BY partition;
 
--- план старой таблицы
+-- проверка 1. Количество бронирований за конкретный месяц
+-- ДО
 EXPLAIN ANALYZE
-SELECT count(*)
+SELECT count(*) FROM bookings_old
+WHERE book_date >= '2025-10-01' AND book_date < '2025-11-01';
+-- ПОСЛЕ
+EXPLAIN ANALYZE
+SELECT count(*) FROM bookings
+WHERE book_date >= '2025-10-01' AND book_date < '2025-11-01';
+--проверка 2. Сумма выручки по месяцам 
+-- ДО
+EXPLAIN ANALYZE
+SELECT date_trunc('month', book_date) AS mon, sum(total_amount)
 FROM bookings_old
-WHERE book_date >= '2025-09-01'
-  AND book_date <  '2025-10-01';
-
--- план новой секционированной таблицы
+GROUP BY mon ORDER BY mon;
+-- ПОСЛЕ
 EXPLAIN ANALYZE
-SELECT count(*)
+SELECT date_trunc('month', book_date) AS mon, sum(total_amount)
 FROM bookings
-WHERE book_date >= '2025-09-01'
-  AND book_date <  '2025-10-01';
+GROUP BY mon ORDER BY mon;
+-- проверка 3. Последние 10 бронирований за конкретный период
+-- ДО
+EXPLAIN ANALYZE
+SELECT book_ref, book_date, total_amount
+FROM bookings_old
+WHERE book_date >= '2025-11-01' AND book_date < '2025-12-01'
+ORDER BY book_date DESC
+LIMIT 10;
+-- ПОСЛЕ
+EXPLAIN ANALYZE
+SELECT book_ref, book_date, total_amount
+FROM bookings
+WHERE book_date >= '2025-11-01' AND book_date < '2025-12-01'
+ORDER BY book_date DESC
+LIMIT 10;
 
 -- Проверим операции вставки, обновления и удаления 
 -- добовляем строку - строка остается в ожидаемой секции
