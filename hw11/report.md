@@ -269,14 +269,51 @@ WHERE book_date >= '2025-09-01'
 Проверим, что операции вставки, обновления и удаления работают в новой таблице корректно.
 
 ```sql
-INSERT INTO bookings (book_ref, book_date, total_amount) 
- VALUES ('ZZZ999', '2025-09-15 10:00:00+03', 100.00);
+-- добовляем строку - строка остается в ожидаемой секции
+INSERT INTO bookings (book_ref, book_date, total_amount)
+VALUES ('TST001', '2025-10-15 12:00:00+05', 100.00);
 
-UPDATE bookings
- SET total_amount = 101.00 WHERE book_ref = 'ZZZ999';
+SELECT tableoid::regclass AS partition, book_ref, book_date, total_amount
+FROM bookings WHERE book_ref = 'TST001';
+-- Ожидаем: bookings_2025_10
 
+    partition     | book_ref |       book_date        | total_amount
+------------------+----------+------------------------+--------------
+ bookings_2025_10 | TST001   | 2025-10-15 12:00:00+05 |       100.00
+
+-- меняем сумму - строка остается в текущей секции
+UPDATE bookings SET total_amount = 101.00
+WHERE book_ref = 'TST001';
+
+SELECT tableoid::regclass AS partition, total_amount
+FROM bookings WHERE book_ref = 'TST001';
+-- Ожидаем: bookings_2025_10, total_amount = 101.00
+
+    partition     | total_amount
+------------------+--------------
+ bookings_2025_10 |       101.00
+
+-- меняющий ключ секционирования — строка переедет в другую секцию
+UPDATE bookings SET book_date = '2025-11-05 09:00:00+05'
+WHERE book_ref = 'TST001';
+
+SELECT tableoid::regclass AS partition, book_date
+FROM bookings WHERE book_ref = 'TST001';
+-- Ожидаем: bookings_2025_11 
+
+    partition     |       book_date
+------------------+------------------------
+ bookings_2025_11 | 2025-11-05 09:00:00+05
+
+-- удаление строк
 DELETE FROM bookings
- WHERE book_ref = 'ZZZ999'; 
+WHERE book_ref = 'TST001';
+
+SELECT count(*) FROM bookings WHERE book_ref = 'TST001';
+
+ count
+-------
+     0
 ```
 
 Все операции отробатывают без ошибок.
