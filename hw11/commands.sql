@@ -1,20 +1,20 @@
--- Ñåêöèîíèðîâàíèå òàáëèöû 
--- ïîäêëþ÷àåìñÿ ê ðàíåå óñòàíîâëåííîé òåñòîé áàçå 
+-- Ð¡ÐµÐºÑ†Ð¸Ð¾Ð½Ð¸Ñ€Ð¾Ð²Ð°Ð½Ð¸Ðµ Ñ‚Ð°Ð±Ð»Ð¸Ñ†Ñ‹ 
+-- Ð¿Ð¾Ð´ÐºÐ»ÑŽÑ‡Ð°ÐµÐ¼ÑÑ Ðº Ñ€Ð°Ð½ÐµÐµ ÑƒÑÑ‚Ð°Ð½Ð¾Ð²Ð»ÐµÐ½Ð½Ð¾Ð¹ Ñ‚ÐµÑÑ‚Ð¾Ð¹ Ð±Ð°Ð·Ðµ 
 -- sudo -u postgres psql -h localhost -p 5433 -d demo
---  ñïèñîê òàáëèö
+--  ÑÐ¿Ð¸ÑÐ¾Ðº Ñ‚Ð°Ð±Ð»Ð¸Ñ†
 \dt
 
--- êîëè÷åñòâî äàííûõ â òàáëèöå êîíäèäàòå
+-- ÐºÐ¾Ð»Ð¸Ñ‡ÐµÑÑ‚Ð²Ð¾ Ð´Ð°Ð½Ð½Ñ‹Ñ… Ð² Ñ‚Ð°Ð±Ð»Ð¸Ñ†Ðµ ÐºÐ¾Ð½Ð´Ð¸Ð´Ð°Ñ‚Ðµ
 select count(1) from bookings;
 
--- ñòðóêòóðà òàáëèöû
+-- ÑÑ‚Ñ€ÑƒÐºÑ‚ÑƒÑ€Ð° Ñ‚Ð°Ð±Ð»Ð¸Ñ†Ñ‹
 \d+ bookings
 
--- Ïåðåêëþ÷àåìñÿ â ñõåìó bookings äåìî-áàçû
+-- ÐŸÐµÑ€ÐµÐºÐ»ÑŽÑ‡Ð°ÐµÐ¼ÑÑ Ð² ÑÑ…ÐµÐ¼Ñƒ bookings Ð´ÐµÐ¼Ð¾-Ð±Ð°Ð·Ñ‹
 SET search_path TO bookings;
 
--- Ñîçäà¸ì íîâóþ ñåêöèîíèðîâàííóþ òàáëèöó ñ òîé æå ñòðóêòóðîé ÷òî è îðèãèíàë,
--- íî ñ ñîñòàâíûì ïåðâè÷íûì êëþ÷îì (book_ref, book_date).
+-- Ð¡Ð¾Ð·Ð´Ð°Ñ‘Ð¼ Ð½Ð¾Ð²ÑƒÑŽ ÑÐµÐºÑ†Ð¸Ð¾Ð½Ð¸Ñ€Ð¾Ð²Ð°Ð½Ð½ÑƒÑŽ Ñ‚Ð°Ð±Ð»Ð¸Ñ†Ñƒ Ñ Ñ‚Ð¾Ð¹ Ð¶Ðµ ÑÑ‚Ñ€ÑƒÐºÑ‚ÑƒÑ€Ð¾Ð¹ Ñ‡Ñ‚Ð¾ Ð¸ Ð¾Ñ€Ð¸Ð³Ð¸Ð½Ð°Ð»,
+-- Ð½Ð¾ Ñ ÑÐ¾ÑÑ‚Ð°Ð²Ð½Ñ‹Ð¼ Ð¿ÐµÑ€Ð²Ð¸Ñ‡Ð½Ñ‹Ð¼ ÐºÐ»ÑŽÑ‡Ð¾Ð¼ (book_ref, book_date).
 CREATE TABLE bookings_partitioned (
     book_ref     char(6)      NOT NULL,
     book_date    timestamptz  NOT NULL,
@@ -22,57 +22,57 @@ CREATE TABLE bookings_partitioned (
     PRIMARY KEY (book_ref, book_date)
 ) PARTITION BY RANGE (book_date);
 
--- ïðîâåðèì äèàïàçîí äàííûõ â ïåðâè÷íîé òàáëèöå
+-- Ð¿Ñ€Ð¾Ð²ÐµÑ€Ð¸Ð¼ Ð´Ð¸Ð°Ð¿Ð°Ð·Ð¾Ð½ Ð´Ð°Ð½Ð½Ñ‹Ñ… Ð² Ð¿ÐµÑ€Ð²Ð¸Ñ‡Ð½Ð¾Ð¹ Ñ‚Ð°Ð±Ð»Ð¸Ñ†Ðµ
 select min(book_date), max(book_date) from bookings;
 
--- ñîçäàäèì 3 ïàðòèöèè çà 3 ìåñÿöà 2025 ãîäà 
+-- ÑÐ¾Ð·Ð´Ð°Ð´Ð¸Ð¼ 3 Ð¿Ð°Ñ€Ñ‚Ð¸Ñ†Ð¸Ð¸ Ð·Ð° 3 Ð¼ÐµÑÑÑ†Ð° 2025 Ð³Ð¾Ð´Ð° 
 CREATE TABLE bookings_2025_09 PARTITION OF bookings_part
     FOR VALUES FROM ('2025-09-01') TO ('2025-10-01');
 CREATE TABLE bookings_2025_10 PARTITION OF bookings_part
     FOR VALUES FROM ('2025-10-01') TO ('2025-11-01');
 CREATE TABLE bookings_2025_11 PARTITION OF bookings_part
     FOR VALUES FROM ('2025-11-01') TO ('2025-12-01');
--- ïëþñ DEFAULT-ñåêöèÿ äëÿ çàïèñåé âíå ÿâíî çàäàííûõ äèàïàçîíîâ
+-- Ð¿Ð»ÑŽÑ DEFAULT-ÑÐµÐºÑ†Ð¸Ñ Ð´Ð»Ñ Ð·Ð°Ð¿Ð¸ÑÐµÐ¹ Ð²Ð½Ðµ ÑÐ²Ð½Ð¾ Ð·Ð°Ð´Ð°Ð½Ð½Ñ‹Ñ… Ð´Ð¸Ð°Ð¿Ð°Ð·Ð¾Ð½Ð¾Ð²
 CREATE TABLE bookings_default PARTITION OF bookings_part DEFAULT;
 
--- Îñâîáîæäàåì çàâèñèìîñòü îò âíåøíåãî êëþ÷à
+-- ÐžÑÐ²Ð¾Ð±Ð¾Ð¶Ð´Ð°ÐµÐ¼ Ð·Ð°Ð²Ð¸ÑÐ¸Ð¼Ð¾ÑÑ‚ÑŒ Ð¾Ñ‚ Ð²Ð½ÐµÑˆÐ½ÐµÐ³Ð¾ ÐºÐ»ÑŽÑ‡Ð°
 ALTER TABLE tickets DROP CONSTRAINT IF EXISTS tickets_book_ref_fkey;
 
--- Êîïèðóåì äàííûå èç ñòàðîé òàáëèöû â ñåêöèîíèðîâàííóþ
+-- ÐšÐ¾Ð¿Ð¸Ñ€ÑƒÐµÐ¼ Ð´Ð°Ð½Ð½Ñ‹Ðµ Ð¸Ð· ÑÑ‚Ð°Ñ€Ð¾Ð¹ Ñ‚Ð°Ð±Ð»Ð¸Ñ†Ñ‹ Ð² ÑÐµÐºÑ†Ð¸Ð¾Ð½Ð¸Ñ€Ð¾Ð²Ð°Ð½Ð½ÑƒÑŽ
 INSERT INTO bookings_part (book_ref, book_date, total_amount)
 SELECT book_ref, book_date, total_amount
 FROM bookings;
 
--- Ïåðåèìåíîâûâàåì ñòàðóþ òàáëèöó (ñîõðàíÿåì êàê ðåçåðâíóþ) è ââîäèì íîâóþ
+-- ÐŸÐµÑ€ÐµÐ¸Ð¼ÐµÐ½Ð¾Ð²Ñ‹Ð²Ð°ÐµÐ¼ ÑÑ‚Ð°Ñ€ÑƒÑŽ Ñ‚Ð°Ð±Ð»Ð¸Ñ†Ñƒ (ÑÐ¾Ñ…Ñ€Ð°Ð½ÑÐµÐ¼ ÐºÐ°Ðº Ñ€ÐµÐ·ÐµÑ€Ð²Ð½ÑƒÑŽ) Ð¸ Ð²Ð²Ð¾Ð´Ð¸Ð¼ Ð½Ð¾Ð²ÑƒÑŽ
 ALTER TABLE bookings RENAME TO bookings_old;
 ALTER TABLE bookings_part RENAME TO bookings;
 
--- Èíäåêñ ïî êëþ÷ó ñåêöèîíèðîâàíèÿ 
+-- Ð˜Ð½Ð´ÐµÐºÑ Ð¿Ð¾ ÐºÐ»ÑŽÑ‡Ñƒ ÑÐµÐºÑ†Ð¸Ð¾Ð½Ð¸Ñ€Ð¾Ð²Ð°Ð½Ð¸Ñ 
 CREATE INDEX idx_bookings_book_date ON bookings (book_date);
--- Äîïîëíèòåëüíûé èíäåêñ ïî ñòàðîìó ïåðâè÷íîìó êëþ÷ó book_ref
+-- Ð”Ð¾Ð¿Ð¾Ð»Ð½Ð¸Ñ‚ÐµÐ»ÑŒÐ½Ñ‹Ð¹ Ð¸Ð½Ð´ÐµÐºÑ Ð¿Ð¾ ÑÑ‚Ð°Ñ€Ð¾Ð¼Ñƒ Ð¿ÐµÑ€Ð²Ð¸Ñ‡Ð½Ð¾Ð¼Ñƒ ÐºÐ»ÑŽÑ‡Ñƒ book_ref
 CREATE INDEX idx_bookings_book_ref ON bookings (book_ref);
 
---Ïðîâåðêà ðàñïðåäåëåíèÿ äàííûõ ïî ñåêöèÿì
+--ÐŸÑ€Ð¾Ð²ÐµÑ€ÐºÐ° Ñ€Ð°ÑÐ¿Ñ€ÐµÐ´ÐµÐ»ÐµÐ½Ð¸Ñ Ð´Ð°Ð½Ð½Ñ‹Ñ… Ð¿Ð¾ ÑÐµÐºÑ†Ð¸ÑÐ¼
 SELECT tableoid::regclass AS partition, count(*)
 FROM bookings
 GROUP BY tableoid
 ORDER BY partition;
 
--- ïëàí ñòàðîé òàáëèöû
+-- Ð¿Ð»Ð°Ð½ ÑÑ‚Ð°Ñ€Ð¾Ð¹ Ñ‚Ð°Ð±Ð»Ð¸Ñ†Ñ‹
 EXPLAIN ANALYZE
 SELECT count(*)
 FROM bookings_old
 WHERE book_date >= '2025-09-01'
   AND book_date <  '2025-10-01';
 
--- ïëàí íîâîé ñåêöèîíèðîâàííîé òàáëèöû
+-- Ð¿Ð»Ð°Ð½ Ð½Ð¾Ð²Ð¾Ð¹ ÑÐµÐºÑ†Ð¸Ð¾Ð½Ð¸Ñ€Ð¾Ð²Ð°Ð½Ð½Ð¾Ð¹ Ñ‚Ð°Ð±Ð»Ð¸Ñ†Ñ‹
 EXPLAIN ANALYZE
 SELECT count(*)
 FROM bookings
 WHERE book_date >= '2025-09-01'
   AND book_date <  '2025-10-01';
 
---Ïðîâåðèì îïåðàöèè âñòàâêè, îáíîâëåíèÿ è óäàëåíèÿ 
+--ÐŸÑ€Ð¾Ð²ÐµÑ€Ð¸Ð¼ Ð¾Ð¿ÐµÑ€Ð°Ñ†Ð¸Ð¸ Ð²ÑÑ‚Ð°Ð²ÐºÐ¸, Ð¾Ð±Ð½Ð¾Ð²Ð»ÐµÐ½Ð¸Ñ Ð¸ ÑƒÐ´Ð°Ð»ÐµÐ½Ð¸Ñ 
 INSERT INTO bookings (book_ref, book_date, total_amount) 
  VALUES ('ZZZ999', '2025-09-15 10:00:00+03', 100.00);
 UPDATE bookings
