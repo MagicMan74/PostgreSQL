@@ -221,46 +221,151 @@ ORDER BY partition;
 Данные равномерно распределены.
 Крайние значение за 2025_12 не попавшие в основные партиции оказались в bookings_default.
 
-Посмотрим план выборки бронирования за один месяц в старой и новой секционированной таблице.
+Посмотрим планы различных выборок в старой и новой секционированной таблице.
 
 ```sql
+-- проверка 1. Количество бронирований за конкретный месяц
+-- ДО
 EXPLAIN ANALYZE
-SELECT count(*)
-FROM bookings_old
-WHERE book_date >= '2025-09-01'
-  AND book_date <  '2025-10-01';
+SELECT count(*) FROM bookings_old
+WHERE book_date >= '2025-10-01' AND book_date < '2025-11-01';
 
                                                                               QUERY PLAN                                                                            
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
- Finalize Aggregate  (cost=17786.47..17786.48 rows=1 width=8) (actual time=52.052..56.477 rows=1 loops=1)
-   ->  Gather  (cost=17786.25..17786.46 rows=2 width=8) (actual time=51.959..56.470 rows=3 loops=1)
+ Finalize Aggregate  (cost=17769.91..17769.92 rows=1 width=8) (actual time=148.248..152.883 rows=1 loops=1)
+   ->  Gather  (cost=17769.69..17769.90 rows=2 width=8) (actual time=148.151..152.877 rows=3 loops=1)
          Workers Planned: 2
          Workers Launched: 2
-         ->  Partial Aggregate  (cost=16786.25..16786.26 rows=1 width=8) (actual time=49.395..49.396 rows=1 loops=3)
-               ->  Parallel Seq Scan on bookings_old  (cost=0.00..16320.58 rows=186269 width=0) (actual time=0.024..42.721 rows=148367 loops=3)
-                     Filter: ((book_date >= '2025-09-01 00:00:00+05'::timestamp with time zone) AND (book_date < '2025-10-01 00:00:00+05'::timestamp with time zone))
-                     Rows Removed by Filter: 282597
- Planning Time: 0.305 ms
- Execution Time: 56.524 ms
+         ->  Partial Aggregate  (cost=16769.69..16769.70 rows=1 width=8) (actual time=139.449..139.450 rows=1 loops=3)
+               ->  Parallel Seq Scan on bookings_old  (cost=0.00..16320.58 rows=179645 width=0) (actual time=0.214..134.720 rows=144794 loops=3)
+                     Filter: ((book_date >= '2025-10-01 00:00:00+05'::timestamp with time zone) AND (book_date < '2025-11-01 00:00:00+05'::timestamp with time zone))
+                     Rows Removed by Filter: 286171
+ Planning Time: 0.131 ms
+ Execution Time: 152.934 ms
 
+-- ПОСЛЕ
 EXPLAIN ANALYZE
-SELECT count(*)
-FROM bookings
-WHERE book_date >= '2025-09-01'
-  AND book_date <  '2025-10-01';
+SELECT count(*) FROM bookings
+WHERE book_date >= '2025-10-01' AND book_date < '2025-11-01';
 
                                                                               QUERY PLAN                                                                            
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
- Finalize Aggregate  (cost=8418.05..8418.06 rows=1 width=8) (actual time=26.994..29.220 rows=1 loops=1)
-   ->  Gather  (cost=8417.93..8418.04 rows=1 width=8) (actual time=26.888..29.215 rows=2 loops=1)
+ Finalize Aggregate  (cost=8238.68..8238.69 rows=1 width=8) (actual time=28.870..30.954 rows=1 loops=1)
+   ->  Gather  (cost=8238.57..8238.68 rows=1 width=8) (actual time=28.771..30.950 rows=2 loops=1)
          Workers Planned: 1
          Workers Launched: 1
-         ->  Partial Aggregate  (cost=7417.93..7417.94 rows=1 width=8) (actual time=25.616..25.617 rows=1 loops=2)
-               ->  Parallel Seq Scan on bookings_2025_09 bookings  (cost=0.00..6763.37 rows=261825 width=0) (actual time=0.007..18.382 rows=222551 loops=2)
-                     Filter: ((book_date >= '2025-09-01 00:00:00+05'::timestamp with time zone) AND (book_date < '2025-10-01 00:00:00+05'::timestamp with time zone))
- Planning Time: 0.172 ms
- Execution Time: 29.240 ms
+         ->  Partial Aggregate  (cost=7238.57..7238.58 rows=1 width=8) (actual time=27.116..27.116 rows=1 loops=2)
+               ->  Parallel Seq Scan on bookings_2025_10 bookings  (cost=0.00..6599.77 rows=255518 width=0) (actual time=0.007..19.802 rows=217190 loops=2)
+                     Filter: ((book_date >= '2025-10-01 00:00:00+05'::timestamp with time zone) AND (book_date < '2025-11-01 00:00:00+05'::timestamp with time zone))
+ Planning Time: 1.678 ms
+ Execution Time: 31.185 ms
 ```
+
+```sql
+--проверка 2. Сумма выручки по месяцам 
+-- ДО
+EXPLAIN ANALYZE
+SELECT date_trunc('month', book_date) AS mon, sum(total_amount)
+FROM bookings_old
+GROUP BY mon ORDER BY mon;
+
+                                                              QUERY PLAN
+--------------------------------------------------------------------------------------------------------------------------------------
+ GroupAggregate  (cost=177739.34..206829.43 rows=1292893 width=40) (actual time=738.963..871.452 rows=4 loops=1)
+   Group Key: (date_trunc('month'::text, book_date))
+   ->  Sort  (cost=177739.34..180971.57 rows=1292893 width=14) (actual time=669.302..749.412 rows=1292893 loops=1)
+         Sort Key: (date_trunc('month'::text, book_date))
+         Sort Method: external merge  Disk: 30576kB
+         ->  Seq Scan on bookings_old  (cost=0.00..24401.16 rows=1292893 width=14) (actual time=37.875..265.484 rows=1292893 loops=1)
+ Planning Time: 0.631 ms
+ JIT:
+   Functions: 7
+   Options: Inlining false, Optimization false, Expressions true, Deforming true
+   Timing: Generation 2.332 ms (Deform 0.695 ms), Inlining 0.000 ms, Optimization 2.976 ms, Emission 34.449 ms, Total 39.757 ms
+ Execution Time: 1026.812 ms
+
+-- ПОСЛЕ
+EXPLAIN ANALYZE
+SELECT date_trunc('month', book_date) AS mon, sum(total_amount)
+FROM bookings
+GROUP BY mon ORDER BY mon;
+
+                                                                                 QUERY PLAN                                                                         
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Finalize GroupAggregate  (cost=24142.30..24194.97 rows=200 width=40) (actual time=273.090..277.774 rows=4 loops=1)
+   Group Key: (date_trunc('month'::text, bookings.book_date))
+   ->  Gather Merge  (cost=24142.30..24188.97 rows=400 width=40) (actual time=273.082..277.763 rows=7 loops=1)
+         Workers Planned: 2
+         Workers Launched: 2
+         ->  Sort  (cost=23142.27..23142.77 rows=200 width=40) (actual time=260.642..260.644 rows=2 loops=3)
+               Sort Key: (date_trunc('month'::text, bookings.book_date))
+               Sort Method: quicksort  Memory: 25kB
+               Worker 0:  Sort Method: quicksort  Memory: 25kB
+               Worker 1:  Sort Method: quicksort  Memory: 25kB
+               ->  Partial HashAggregate  (cost=23131.63..23134.63 rows=200 width=40) (actual time=260.622..260.625 rows=2 loops=3)
+                     Group Key: (date_trunc('month'::text, bookings.book_date))
+                     Batches: 1  Memory Usage: 40kB
+                     Worker 0:  Batches: 1  Memory Usage: 40kB
+                     Worker 1:  Batches: 1  Memory Usage: 40kB
+                     ->  Parallel Append  (cost=0.00..20438.10 rows=538706 width=14) (actual time=0.365..200.029 rows=430964 loops=3)
+                           ->  Parallel Seq Scan on bookings_2025_09 bookings_1  (cost=0.00..6108.81 rows=261825 width=14) (actual time=0.052..69.653 rows=148367 loops=3)
+                           ->  Parallel Seq Scan on bookings_2025_10 bookings_2  (cost=0.00..5960.98 rows=255518 width=14) (actual time=0.007..82.266 rows=434381 loops=1)
+                           ->  Parallel Seq Scan on bookings_2025_11 bookings_3  (cost=0.00..5637.10 rows=241608 width=14) (actual time=0.057..124.540 rows=205366 loops=2)
+                           ->  Parallel Seq Scan on bookings_default bookings_4  (cost=0.00..37.68 rows=1575 width=14) (actual time=1.022..3.456 rows=2677 loops=1)
+ Planning Time: 1.097 ms
+ Execution Time: 277.852 ms
+```
+
+```sql
+-- проверка 3. Последние 10 бронирований за конкретный период
+-- ДО
+EXPLAIN ANALYZE
+SELECT book_ref, book_date, total_amount
+FROM bookings_old
+WHERE book_date >= '2025-11-01' AND book_date < '2025-12-01'
+ORDER BY book_date DESC
+LIMIT 10;
+
+                                                                              QUERY PLAN                                                                            
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=21030.44..21031.61 rows=10 width=21) (actual time=45.570..47.886 rows=10 loops=1)
+   ->  Gather Merge  (cost=21030.44..61090.74 rows=343350 width=21) (actual time=45.569..47.882 rows=10 loops=1)
+         Workers Planned: 2
+         Workers Launched: 2
+         ->  Sort  (cost=20030.42..20459.60 rows=171675 width=21) (actual time=38.128..38.129 rows=8 loops=3)
+               Sort Key: book_date DESC
+               Sort Method: top-N heapsort  Memory: 26kB
+               Worker 0:  Sort Method: top-N heapsort  Memory: 26kB
+               Worker 1:  Sort Method: top-N heapsort  Memory: 26kB
+               ->  Parallel Seq Scan on bookings_old  (cost=0.00..16320.58 rows=171675 width=21) (actual time=0.382..29.143 rows=136911 loops=3)
+                     Filter: ((book_date >= '2025-11-01 00:00:00+05'::timestamp with time zone) AND (book_date < '2025-12-01 00:00:00+05'::timestamp with time zone))
+                     Rows Removed by Filter: 294053
+ Planning Time: 0.074 ms
+ Execution Time: 47.903 ms
+
+-- ПОСЛЕ
+EXPLAIN ANALYZE
+SELECT book_ref, book_date, total_amount
+FROM bookings
+WHERE book_date >= '2025-11-01' AND book_date < '2025-12-01'
+ORDER BY book_date DESC
+LIMIT 10;
+
+                                                                                     QUERY PLAN                                                                     
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=0.42..0.81 rows=10 width=21) (actual time=0.006..0.013 rows=10 loops=1)
+   ->  Index Scan Backward using bookings_2025_11_book_date_idx on bookings_2025_11 bookings  (cost=0.42..15997.91 rows=410733 width=21) (actual time=0.006..0.011 rows=10 loops=1)
+         Index Cond: ((book_date >= '2025-11-01 00:00:00+05'::timestamp with time zone) AND (book_date < '2025-12-01 00:00:00+05'::timestamp with time zone))
+ Planning Time: 0.120 ms
+ Execution Time: 0.021 ms
+```
+
+В итоге имеем следующее:
+|| ||bookings_old||bookings||
+|Запрос 1|152.934 ms|31.185 ms| 
+|Запрос 2|1026.812 ms|277.852 ms| 
+|Запрос 3|47.903 ms|0.021 ms| 
+
 
 Первый план содержит Seq Scan по всей таблице bookings_old, второй план включает только секцию bookings_2025_09,
 что указывает на более узкий запрос к блоку данных. Имеем двукратны уменьшение времени выполнения запроса.
