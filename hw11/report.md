@@ -190,13 +190,15 @@ ALTER TABLE bookings_part RENAME TO bookings;
 ```
 
 Проведем оптимизацию, добавив вспомогательные индексы.
+Контроль уникальности только по book_ref на секционированной по дате таблице невозможен,
+поэтому для ускорения поиска по номеру брони создан обычный индекс.
 
 ```sql
 -- Индекс по ключу секционирования 
 CREATE INDEX idx_bookings_book_date ON bookings (book_date);
 
--- Дополнительный уникальный индекс по старому первичному ключу book_ref
-CREATE UNIQUE INDEX idx_bookings_book_ref ON bookings (book_ref);
+-- Дополнительный индекс по старому первичному ключу book_ref
+CREATE INDEX idx_bookings_book_ref ON bookings (book_ref);
 ```
 
 ## 3. Тестирование внесенных изменений
