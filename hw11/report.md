@@ -208,7 +208,6 @@ FROM bookings
 GROUP BY tableoid
 ORDER BY partition;
 
-demo-# ORDER BY partition;
     partition     | count
 ------------------+--------
  bookings_2025_09 | 445102
